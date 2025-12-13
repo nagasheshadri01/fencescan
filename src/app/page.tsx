@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User } from 'lucide-react';
+import { User, Shield } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -15,8 +15,8 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 w-full max-w-2xl">
-        <Card className="hover:shadow-lg transition-shadow">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+        <Card className="hover:shadow-lg transition-shadow border-primary/20 hover:border-primary/50">
           <CardHeader className="items-center text-center">
             <User className="w-12 h-12 text-primary mb-4" />
             <CardTitle className="font-headline text-2xl">User Dashboard</CardTitle>
@@ -25,6 +25,19 @@ export default function Home() {
           <CardContent className="flex justify-center">
             <Button asChild size="lg">
               <Link href="/dashboard">Go to Dashboard</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow border-secondary hover:border-muted-foreground/50">
+          <CardHeader className="items-center text-center">
+            <Shield className="w-12 h-12 text-muted-foreground mb-4" />
+            <CardTitle className="font-headline text-2xl">Admin Panel</CardTitle>
+            <CardDescription>Control the simulated fence status.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button asChild size="lg" variant="secondary">
+              <Link href="/admin">Go to Admin</Link>
             </Button>
           </CardContent>
         </Card>
