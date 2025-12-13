@@ -1,9 +1,9 @@
 'use client';
 
-import { useFenceStatus, FenceStatusValue } from '@/hooks/use-fence-status';
+import { useFenceStatus } from '@/hooks/use-fence-status';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, AlertTriangle, WifiOff, RefreshCw, ChevronLeft, ZapOff, Zap } from 'lucide-react';
+import { CheckCircle, WifiOff, RefreshCw, ChevronLeft, ZapOff, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminPage() {

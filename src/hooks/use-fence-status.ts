@@ -32,6 +32,7 @@ export function useFenceStatus() {
         status: newStatus,
         lastUpdated: new Date().toISOString(),
       };
+      // This is a non-blocking write. The UI will update via the real-time listener.
       setDoc(docRef, dataToSet, { merge: true });
     }
   };

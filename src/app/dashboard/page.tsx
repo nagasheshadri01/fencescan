@@ -149,11 +149,11 @@ const EventTimeline = ({ newStatus }: { newStatus: Status }) => {
       const timestamp = new Date().toLocaleTimeString();
       let eventMessage = '';
       switch(newStatus) {
-        case 'LEGAL': eventMessage = 'Fence state set to LIVE'; break;
-        case 'ILLEGAL_NO_PULSE': eventMessage = 'Status changed to ILLEGAL - No Pulse'; break;
-        case 'ILLEGAL_HIGH_PULSE': eventMessage = 'Status changed to ILLEGAL - High Pulse'; break;
-        case 'NOT_DETECTED': eventMessage = 'Fence signal unavailable'; break;
-        case 'DETECTING': eventMessage = 'System reset to DETECTING'; break;
+        case 'LEGAL': eventMessage = 'Fence pulse detected. System operating normally.'; break;
+        case 'ILLEGAL_NO_PULSE': eventMessage = 'Fence pulse lost. Monitoring indicates possible power failure.'; break;
+        case 'ILLEGAL_HIGH_PULSE': eventMessage = 'High-frequency pulse anomaly detected.'; break;
+        case 'NOT_DETECTED': eventMessage = 'Fence signal unavailable.'; break;
+        case 'DETECTING': eventMessage = 'System reset. Monitoring for fence pulse...'; break;
         default: return;
       }
       setEvents(prev => [`${timestamp} - ${eventMessage}`, ...prev].slice(0, 5));
@@ -206,7 +206,7 @@ export default function DashboardPage() {
                 Electric Fence Monitoring System
               </h1>
               <p className="text-sm text-muted-foreground">
-                Live system state visualization | Central sync active
+                Live fence diagnostics | Continuous monitoring active
               </p>
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function DashboardPage() {
         </div>
 
         <footer className="text-center mt-8 text-sm text-muted-foreground">
-          System synchronized with central database
+          Monitoring system synchronized
         </footer>
       </div>
     </main>
