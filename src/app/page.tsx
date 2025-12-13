@@ -5,7 +5,7 @@ import { Shield, User } from 'lucide-react';
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-50">
+    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background">
       <div className="text-center mb-12">
         <h1 className="font-headline text-5xl md:text-7xl font-bold text-primary">
           FenceSync
