@@ -4,7 +4,7 @@ import { useFenceStatus } from '@/hooks/use-fence-status';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Lock, AlertTriangle, ChevronLeft, RefreshCw } from 'lucide-react';
+import { Lock, AlertTriangle, ChevronLeft, RefreshCw, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -28,7 +28,10 @@ export default function AdminPage() {
                 <div
                   className={cn(
                     'w-4 h-4 rounded-full',
-                    status === 'LEGAL' ? 'bg-accent' : status === 'ILLEGAL' ? 'bg-destructive' : 'bg-primary'
+                    status === 'LEGAL' ? 'bg-accent' : 
+                    status === 'ILLEGAL' ? 'bg-destructive' : 
+                    status === 'NOT_DETECTED' ? 'bg-muted-foreground' : 
+                    'bg-primary'
                   )}
                 />
                 <span className="font-bold text-lg font-headline">{status}</span>
@@ -57,16 +60,26 @@ export default function AdminPage() {
               Set Illegal
             </Button>
           </div>
-           <div className="pt-4">
+           <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Button
               size="lg"
               variant="outline"
-              className="h-16 w-full text-lg"
+              className="h-16 text-lg"
               onClick={() => setFenceStatus('DETECTING')}
               disabled={status === 'LOADING'}
             >
               <RefreshCw className="mr-2 h-6 w-6" />
-              Reset to Detecting
+              Reset
+            </Button>
+            <Button
+              size="lg"
+              variant="secondary"
+              className="h-16 text-lg"
+              onClick={() => setFenceStatus('NOT_DETECTED')}
+              disabled={status === 'LOADING'}
+            >
+              <WifiOff className="mr-2 h-6 w-6" />
+              Not Detected
             </Button>
           </div>
         </CardContent>

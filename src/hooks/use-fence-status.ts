@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
-type FenceStatusValue = 'LEGAL' | 'ILLEGAL' | 'DETECTING';
+type FenceStatusValue = 'LEGAL' | 'ILLEGAL' | 'DETECTING' | 'NOT_DETECTED';
 type LoadingStatus = 'LOADING';
 export type Status = FenceStatusValue | LoadingStatus;
 

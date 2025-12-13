@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ChevronLeft, ShieldCheck, ShieldAlert, Thermometer, Wind, MapPin, Construction, Activity, Info } from 'lucide-react';
+import { ChevronLeft, ShieldCheck, ShieldAlert, Thermometer, Wind, MapPin, Construction, Activity, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 
@@ -13,6 +13,7 @@ const StatusDisplay = ({ status }: { status: Status }) => {
   const isLegal = status === 'LEGAL';
   const isIllegal = status === 'ILLEGAL';
   const isDetecting = status === 'DETECTING';
+  const isNotDetected = status === 'NOT_DETECTED';
   const isLoading = status === 'LOADING';
 
   if (isLoading) {
@@ -53,6 +54,35 @@ const StatusDisplay = ({ status }: { status: Status }) => {
                   Please Wait
               </h2>
               <p className="text-sm mt-2 text-primary-foreground/80">Monitoring electrical pulses and sensor data to determine the current fence state. This may take a moment.</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (isNotDetected) {
+    return (
+        <Card
+        className={cn(
+          'w-full text-center transition-colors duration-500 border-muted-foreground bg-muted/50'
+        )}
+      >
+          <CardHeader>
+               <CardTitle className="flex items-center justify-center gap-2">
+                  <WifiOff className="text-muted-foreground" />
+                  Fence Not Detected
+              </CardTitle>
+          </CardHeader>
+        <CardContent>
+          <div
+              className={cn(
+                  'p-4 rounded-lg bg-muted/80 text-foreground'
+              )}
+          >
+              <h2 className="font-headline text-2xl sm:text-3xl font-bold uppercase tracking-wider">
+                  Connection Lost
+              </h2>
+              <p className="text-sm mt-2 text-foreground/80">Could not establish a connection with the fence monitoring hardware. Please check the device and network connection.</p>
           </div>
         </CardContent>
       </Card>
