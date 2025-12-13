@@ -5,12 +5,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ChevronLeft, ShieldCheck, ShieldAlert, Thermometer, Wind, MapPin, Construction } from 'lucide-react';
+import { ChevronLeft, ShieldCheck, ShieldAlert, Thermometer, Wind, MapPin, Construction, Activity, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 
 const StatusDisplay = ({ status }: { status: Status }) => {
   const isLegal = status === 'LEGAL';
+  const isIllegal = status === 'ILLEGAL';
+  const isDetecting = status === 'DETECTING';
   const isLoading = status === 'LOADING';
 
   if (isLoading) {
@@ -26,6 +28,35 @@ const StatusDisplay = ({ status }: { status: Status }) => {
         </CardContent>
       </Card>
     );
+  }
+  
+  if (isDetecting) {
+    return (
+        <Card
+        className={cn(
+          'w-full text-center transition-colors duration-500 border-primary bg-primary/20'
+        )}
+      >
+          <CardHeader>
+               <CardTitle className="flex items-center justify-center gap-2">
+                  <Activity className="text-primary" />
+                  Detecting Fence Status
+              </CardTitle>
+          </CardHeader>
+        <CardContent>
+          <div
+              className={cn(
+                  'p-4 rounded-lg bg-primary/30 text-primary-foreground'
+              )}
+          >
+              <h2 className="font-headline text-2xl sm:text-3xl font-bold uppercase tracking-wider">
+                  Please Wait
+              </h2>
+              <p className="text-sm mt-2 text-primary-foreground/80">Monitoring electrical pulses and sensor data to determine the current fence state. This may take a moment.</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (

@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
-type FenceStatusValue = 'LEGAL' | 'ILLEGAL';
+type FenceStatusValue = 'LEGAL' | 'ILLEGAL' | 'DETECTING';
 type LoadingStatus = 'LOADING';
 export type Status = FenceStatusValue | LoadingStatus;
 
@@ -35,7 +35,7 @@ export function useFenceStatus() {
   const { data: fenceStatusDoc, isLoading: isFenceStatusLoading } = useDoc<FenceStatusDoc>(fenceStatusRef);
   const { data: sensorDataDoc, isLoading: isSensorDataLoading } = useDoc<SensorDataDoc>(sensorDataRef);
 
-  const status: Status = isFenceStatusLoading ? 'LOADING' : fenceStatusDoc?.status || 'ILLEGAL';
+  const status: Status = isFenceStatusLoading ? 'LOADING' : fenceStatusDoc?.status || 'DETECTING';
 
   const setFenceStatus = (newStatus: FenceStatusValue) => {
     if (firestore) {
