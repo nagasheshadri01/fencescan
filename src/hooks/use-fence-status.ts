@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
 import { useMemo } from 'react';
-import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 type FenceStatusValue = 'LEGAL' | 'ILLEGAL';
 type LoadingStatus = 'LOADING';
 export type Status = FenceStatusValue | LoadingStatus;
 
 interface FenceStatusDoc {
-    status: FenceStatusValue;
-    lastUpdated: string;
+  status: FenceStatusValue;
+  lastUpdated: string;
 }
 
 interface SensorDataDoc {
-    temperature: string;
-    smokeDetected: boolean;
-    lastRead: string;
+  temperature: string;
+  smokeDetected: boolean;
+  lastRead: string;
 }
 
 export function useFenceStatus() {
@@ -34,9 +34,9 @@ export function useFenceStatus() {
 
   const { data: fenceStatusDoc, isLoading: isFenceStatusLoading } = useDoc<FenceStatusDoc>(fenceStatusRef);
   const { data: sensorDataDoc, isLoading: isSensorDataLoading } = useDoc<SensorDataDoc>(sensorDataRef);
-  
-  const status: Status = isFenceStatusLoading ? 'LOADING' : (fenceStatusDoc?.status || 'ILLEGAL');
-  
+
+  const status: Status = isFenceStatusLoading ? 'LOADING' : fenceStatusDoc?.status || 'ILLEGAL';
+
   const setFenceStatus = (newStatus: FenceStatusValue) => {
     if (firestore) {
       const docRef = doc(firestore, 'fence_status/latest');
@@ -44,17 +44,18 @@ export function useFenceStatus() {
         status: newStatus,
         lastUpdated: new Date().toISOString(),
       };
-      setDocumentNonBlocking(docRef, dataToSet, { merge: true });
+      // Use setDoc directly for a reliable update.
+      setDoc(docRef, dataToSet, { merge: true });
     }
   };
 
   const sensorData = useMemo(() => {
     if (isSensorDataLoading || !sensorDataDoc) {
-        return null;
+      return null;
     }
     return {
-        temperature: sensorDataDoc.temperature,
-        smokeDetected: sensorDataDoc.smokeDetected,
+      temperature: sensorDataDoc.temperature,
+      smokeDetected: sensorDataDoc.smokeDetected,
     };
   }, [sensorDataDoc, isSensorDataLoading]);
 
