@@ -1,10 +1,9 @@
 'use client';
 
-import { useFenceStatus } from '@/hooks/use-fence-status';
+import { useFenceStatus, FenceStatusValue } from '@/hooks/use-fence-status';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, AlertTriangle, WifiOff, RefreshCw, ChevronLeft } from 'lucide-react';
+import { CheckCircle, AlertTriangle, WifiOff, RefreshCw, ChevronLeft, ZapOff, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminPage() {
@@ -15,11 +14,11 @@ export default function AdminPage() {
       <Card className="w-full max-w-md shadow-2xl border-primary/20">
         <CardHeader>
           <CardTitle className="font-headline text-3xl text-center text-primary">Admin Control Panel</CardTitle>
-          <CardDescription className="text-center">System Simulation Interface</CardDescription>
+          <CardDescription className="text-center">Fence Condition Simulator</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center text-muted-foreground text-sm">
-            These controls simulate real fence conditions for testing and demonstration.
+        <CardContent className="space-y-6">
+          <div className="text-center text-muted-foreground text-sm px-4">
+            These controls simulate real fence conditions for testing, demonstration, and evaluation.
           </div>
           <div className="grid grid-cols-1 gap-4">
             <Button
@@ -31,15 +30,25 @@ export default function AdminPage() {
               <CheckCircle className="mr-2 h-6 w-6" />
               Simulate Normal Fence
             </Button>
+             <Button
+              size="lg"
+              variant="destructive"
+              className="h-16 text-lg"
+              onClick={() => setFenceStatus('ILLEGAL_NO_PULSE')}
+              disabled={status === 'LOADING'}
+            >
+              <ZapOff className="mr-2 h-6 w-6" />
+              Simulate Illegal - No Pulse
+            </Button>
             <Button
               size="lg"
               variant="destructive"
               className="h-16 text-lg"
-              onClick={() => setFenceStatus('ILLEGAL')}
+              onClick={() => setFenceStatus('ILLEGAL_HIGH_PULSE')}
               disabled={status === 'LOADING'}
             >
-              <AlertTriangle className="mr-2 h-6 w-6" />
-              Simulate Fault / Illegal
+              <Zap className="mr-2 h-6 w-6" />
+             Simulate Illegal - High Pulse
             </Button>
             <Button
               size="lg"
@@ -49,7 +58,7 @@ export default function AdminPage() {
               disabled={status === 'LOADING'}
             >
               <WifiOff className="mr-2 h-6 w-6" />
-              Simulate No Fence
+              Simulate No Fence Detected
             </Button>
             <Button
               size="lg"
@@ -63,14 +72,10 @@ export default function AdminPage() {
             </Button>
           </div>
         </CardContent>
-         <CardFooter className="flex justify-center">
-            {status === 'LOADING' ? (
-              <Skeleton className="h-6 w-32" />
-            ) : (
-              <div className="text-muted-foreground">
-                Current State: <span className="font-bold text-foreground">{status}</span>
-              </div>
-            )}
+         <CardFooter className="flex justify-center pt-4">
+            <div className="text-muted-foreground">
+              Current State: <span className="font-bold text-foreground">{status}</span>
+            </div>
         </CardFooter>
       </Card>
       <Button variant="link" asChild className="mt-8">

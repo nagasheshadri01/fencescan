@@ -8,8 +8,9 @@ import { useEffect, useState } from 'react';
 
 const StatusLED = ({ status }: { status: Status }) => {
   const colorClass = {
-    'LEGAL': 'bg-green-500 shadow-[0_0_10px_theme(colors.green.500)]',
-    'ILLEGAL': 'bg-red-500 shadow-[0_0_10px_theme(colors.red.500)] animate-pulse',
+    'LEGAL': 'bg-green-500 shadow-[0_0_10px_theme(colors.green.500)] animate-pulse',
+    'ILLEGAL_NO_PULSE': 'bg-red-500 shadow-[0_0_10px_theme(colors.red.500)] animate-pulse',
+    'ILLEGAL_HIGH_PULSE': 'bg-red-500 shadow-[0_0_10px_theme(colors.red.500)] animate-pulse',
     'NOT_DETECTED': 'bg-amber-500 shadow-[0_0_10px_theme(colors.amber.500)]',
     'DETECTING': 'bg-blue-500 shadow-[0_0_10px_theme(colors.blue.500)] animate-pulse',
     'LOADING': 'bg-gray-500',
@@ -22,32 +23,44 @@ const PrimaryStatusPanel = ({ status }: { status: Status }) => {
   const statusConfig = {
     LEGAL: {
       text: 'FENCE LIVE',
-      explanation: 'System reports normal fence pulse behavior. No anomalies detected.',
+      explanation: 'Normal fence operation detected. Pulse rate within expected range.',
       className: 'text-green-400',
+      bgClassName: 'bg-green-900/20',
       glowClass: 'shadow-[0_0_20px_theme(colors.green.900)]',
     },
-    ILLEGAL: {
-      text: 'FENCE FAULT',
-      explanation: 'System reports abnormal fence condition. Possible power loss, wire break, or tampering.',
+    ILLEGAL_NO_PULSE: {
+      text: 'ILLEGAL – NO PULSE',
+      explanation: 'No fence pulse detected. Possible power failure, wire break, or energizer fault.',
       className: 'text-red-400 animate-pulse',
+      bgClassName: 'bg-red-900/20',
       glowClass: 'shadow-[0_0_20px_theme(colors.red.900)]',
+    },
+    ILLEGAL_HIGH_PULSE: {
+        text: 'ILLEGAL – HIGH PULSE RATE',
+        explanation: 'Abnormally high pulse rate detected. Possible short circuit, grounding issue, or active tampering.',
+        className: 'text-red-400 animate-pulse',
+        bgClassName: 'bg-red-900/20',
+        glowClass: 'shadow-[0_0_20px_theme(colors.red.900)]',
     },
     NOT_DETECTED: {
       text: 'NO FENCE DETECTED',
-      explanation: 'No fence signal detected. Fence may be offline or disconnected.',
+      explanation: 'Fence signal unavailable. Fence may be disconnected or system is offline.',
       className: 'text-amber-400',
+      bgClassName: 'bg-amber-900/20',
       glowClass: 'shadow-[0_0_20px_theme(colors.amber.900)]',
     },
     DETECTING: {
       text: 'DETECTING...',
       explanation: 'Calibrating sensors and monitoring electrical pulses to determine fence state.',
       className: 'text-blue-400 animate-pulse',
+      bgClassName: 'bg-blue-900/20',
       glowClass: 'shadow-[0_0_20px_theme(colors.blue.900)]',
     },
     LOADING: {
       text: 'CONNECTING...',
       explanation: 'Establishing connection to monitoring system...',
       className: 'text-gray-400',
+      bgClassName: 'bg-gray-900/20',
       glowClass: 'shadow-[0_0_20px_theme(colors.gray.900)]',
     },
   };
@@ -55,7 +68,7 @@ const PrimaryStatusPanel = ({ status }: { status: Status }) => {
   const current = statusConfig[status];
 
   return (
-    <Card className={cn('text-center transition-all duration-500 border-border/50', current.glowClass)}>
+    <Card className={cn('text-center transition-all duration-500 border-border/50', current.bgClassName, current.glowClass)}>
       <CardHeader>
         <CardTitle className="text-lg font-medium text-muted-foreground">Fence Operational Status</CardTitle>
       </CardHeader>
@@ -70,7 +83,7 @@ const PrimaryStatusPanel = ({ status }: { status: Status }) => {
 };
 
 const AnalyticalCard = ({ title, value, subtitle }: { title: string; value: string; subtitle: string }) => (
-  <Card className="border-border/30">
+  <Card className="border-border/30 bg-card/80">
     <CardHeader>
       <CardTitle className="text-md font-medium text-muted-foreground">{title}</CardTitle>
     </CardHeader>
@@ -84,21 +97,22 @@ const AnalyticalCard = ({ title, value, subtitle }: { title: string; value: stri
 const ConfidenceCard = ({ status }: { status: Status }) => {
   const confidence = {
     LEGAL: 98,
-    ILLEGAL: 35,
+    ILLEGAL_NO_PULSE: 25,
+    ILLEGAL_HIGH_PULSE: 42,
     NOT_DETECTED: 0,
     DETECTING: 50,
     LOADING: 0,
   }[status];
 
   return (
-    <Card className="border-border/30">
+    <Card className="border-border/30 bg-card/80">
       <CardHeader>
         <CardTitle className="text-md font-medium text-muted-foreground">System Confidence Level</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-4xl font-bold text-foreground">{confidence}%</p>
         <Progress value={confidence} className="mt-2 h-2" />
-        <p className="text-sm text-muted-foreground mt-2">Calculated from simulated pulse consistency</p>
+        <p className="text-sm text-muted-foreground mt-2">Derived from simulated pulse stability</p>
       </CardContent>
     </Card>
   );
@@ -107,16 +121,17 @@ const ConfidenceCard = ({ status }: { status: Status }) => {
 const DiagnosisCard = ({ status }: { status: Status }) => {
   const diagnosis = {
     LEGAL: 'Fence energizer operating within expected parameters.',
-    ILLEGAL: 'Pulse anomaly detected. System integrity compromised.',
-    NOT_DETECTED: 'Fence signal unavailable. Verification required.',
+    ILLEGAL_NO_PULSE: 'Fence pulse absent. System integrity compromised.',
+    ILLEGAL_HIGH_PULSE: 'Pulse anomaly detected. Fence may be shorted or under interference.',
+    NOT_DETECTED: 'No diagnosable fence signal available.',
     DETECTING: 'Analysis in progress.',
     LOADING: 'Awaiting data...',
   }[status];
 
   return (
-    <Card className="border-border/30">
+    <Card className="border-border/30 bg-card/80">
       <CardHeader>
-        <CardTitle className="text-md font-medium text-muted-foreground">Automated Diagnosis</CardTitle>
+        <CardTitle className="text-md font-medium text-muted-foreground">System Diagnosis</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-lg text-foreground">{diagnosis}</p>
@@ -134,8 +149,9 @@ const EventTimeline = ({ newStatus }: { newStatus: Status }) => {
       const timestamp = new Date().toLocaleTimeString();
       let eventMessage = '';
       switch(newStatus) {
-        case 'LEGAL': eventMessage = 'Fence status set to LIVE'; break;
-        case 'ILLEGAL': eventMessage = 'Status changed to FAULT'; break;
+        case 'LEGAL': eventMessage = 'Fence state set to LIVE'; break;
+        case 'ILLEGAL_NO_PULSE': eventMessage = 'Status changed to ILLEGAL - No Pulse'; break;
+        case 'ILLEGAL_HIGH_PULSE': eventMessage = 'Status changed to ILLEGAL - High Pulse'; break;
         case 'NOT_DETECTED': eventMessage = 'Fence signal unavailable'; break;
         case 'DETECTING': eventMessage = 'System reset to DETECTING'; break;
         default: return;
@@ -146,9 +162,9 @@ const EventTimeline = ({ newStatus }: { newStatus: Status }) => {
   }, [newStatus, prevStatus]);
 
   return (
-    <Card className="border-border/30">
+    <Card className="border-border/30 bg-card/80">
       <CardHeader>
-        <CardTitle className="text-md font-medium text-muted-foreground">Event Timeline</CardTitle>
+        <CardTitle className="text-md font-medium text-muted-foreground">System Event Log</CardTitle>
       </CardHeader>
       <CardContent>
         {events.length > 0 ? (
@@ -172,7 +188,8 @@ export default function DashboardPage() {
 
   const pulseValue = {
     LEGAL: '1.2 pulses/sec',
-    ILLEGAL: '0.1 pulses/sec',
+    ILLEGAL_NO_PULSE: '0 pulses/sec',
+    ILLEGAL_HIGH_PULSE: '3.5 pulses/sec',
     NOT_DETECTED: '---',
     DETECTING: '---',
     LOADING: '---',
@@ -189,7 +206,7 @@ export default function DashboardPage() {
                 Electric Fence Monitoring System
               </h1>
               <p className="text-sm text-muted-foreground">
-                Real-time status visualization | System heartbeat active
+                Live system state visualization | Central sync active
               </p>
             </div>
           </div>
@@ -201,7 +218,7 @@ export default function DashboardPage() {
           </div>
 
           <AnalyticalCard 
-            title="Pulse Activity Analysis"
+            title="Pulse Activity"
             value={pulseValue}
             subtitle="Expected operating range: 1-2 pulses/sec"
           />

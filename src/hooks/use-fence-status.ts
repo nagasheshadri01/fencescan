@@ -4,19 +4,13 @@ import { useMemo } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
-type FenceStatusValue = 'LEGAL' | 'ILLEGAL' | 'DETECTING' | 'NOT_DETECTED';
+export type FenceStatusValue = 'LEGAL' | 'ILLEGAL_NO_PULSE' | 'ILLEGAL_HIGH_PULSE' | 'DETECTING' | 'NOT_DETECTED';
 type LoadingStatus = 'LOADING';
 export type Status = FenceStatusValue | LoadingStatus;
 
 interface FenceStatusDoc {
   status: FenceStatusValue;
   lastUpdated: string;
-}
-
-interface SensorDataDoc {
-  temperature: string;
-  smokeDetected: boolean;
-  lastRead: string;
 }
 
 export function useFenceStatus() {
@@ -38,27 +32,9 @@ export function useFenceStatus() {
         status: newStatus,
         lastUpdated: new Date().toISOString(),
       };
-      // Use setDoc directly for a reliable update.
       setDoc(docRef, dataToSet, { merge: true });
     }
   };
 
-  const sensorDataRef = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return doc(firestore, 'sensor_data/static');
-  }, [firestore]);
-
-  const { data: sensorDataDoc, isLoading: isSensorDataLoading } = useDoc<SensorDataDoc>(sensorDataRef);
-
-  const sensorData = useMemo(() => {
-    if (isSensorDataLoading || !sensorDataDoc) {
-      return null;
-    }
-    return {
-      temperature: sensorDataDoc.temperature,
-      smokeDetected: sensorDataDoc.smokeDetected,
-    };
-  }, [sensorDataDoc, isSensorDataLoading]);
-
-  return { status, sensorData, setFenceStatus };
+  return { status, setFenceStatus };
 }
