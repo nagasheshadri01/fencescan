@@ -27,13 +27,7 @@ export function useFenceStatus() {
     return doc(firestore, 'fence_status/latest');
   }, [firestore]);
 
-  const sensorDataRef = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return doc(firestore, 'sensor_data/static');
-  }, [firestore]);
-
   const { data: fenceStatusDoc, isLoading: isFenceStatusLoading } = useDoc<FenceStatusDoc>(fenceStatusRef);
-  const { data: sensorDataDoc, isLoading: isSensorDataLoading } = useDoc<SensorDataDoc>(sensorDataRef);
 
   const status: Status = isFenceStatusLoading ? 'LOADING' : fenceStatusDoc?.status || 'DETECTING';
 
@@ -48,6 +42,13 @@ export function useFenceStatus() {
       setDoc(docRef, dataToSet, { merge: true });
     }
   };
+
+  const sensorDataRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'sensor_data/static');
+  }, [firestore]);
+
+  const { data: sensorDataDoc, isLoading: isSensorDataLoading } = useDoc<SensorDataDoc>(sensorDataRef);
 
   const sensorData = useMemo(() => {
     if (isSensorDataLoading || !sensorDataDoc) {

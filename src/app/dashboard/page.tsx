@@ -5,8 +5,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ChevronLeft, ShieldCheck, ShieldAlert, Thermometer, Wind, MapPin, Construction, Activity, WifiOff } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ChevronLeft, ShieldCheck, ShieldAlert, Activity, WifiOff } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 
 const StatusDisplay = ({ status }: { status: Status }) => {
@@ -118,43 +118,8 @@ const StatusDisplay = ({ status }: { status: Status }) => {
   );
 };
 
-const SensorCard = ({ sensorData }: { sensorData: { temperature: string; smokeDetected: boolean; } | null }) => (
-    <Card>
-        <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Thermometer /> Sensor Data</CardTitle>
-            <CardDescription>Current environmental readings.</CardDescription>
-        </CardHeader>
-        <CardContent className="text-lg">
-            {sensorData ? (
-                <div className="space-y-2">
-                    <p><strong>Temperature:</strong> {sensorData.temperature}</p>
-                    <p><strong>Smoke Detected:</strong> {sensorData.smokeDetected ? 'Yes' : 'No'}</p>
-                </div>
-            ) : (
-                <div className="space-y-2">
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-6 w-1/2" />
-                </div>
-            )}
-        </CardContent>
-    </Card>
-);
-
-const FeatureCard = ({ title, icon, description }: { title: string, icon: React.ReactNode, description: string }) => (
-    <Card className="bg-muted/50 border-dashed">
-        <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-muted-foreground">{icon} {title}</CardTitle>
-            <CardDescription>{description}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex items-center justify-center text-muted-foreground flex-col gap-2">
-            <Construction className="w-10 h-10" />
-            <p className="text-sm font-medium">Coming Soon</p>
-        </CardContent>
-    </Card>
-);
-
 export default function DashboardPage() {
-  const { status, sensorData } = useFenceStatus();
+  const { status } = useFenceStatus();
 
   return (
     <main className="bg-background text-foreground min-h-screen flex flex-col items-center justify-center p-4 sm:p-8">
@@ -165,24 +130,10 @@ export default function DashboardPage() {
                 </h1>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6">
                 <div className="lg:col-span-3">
                     <StatusDisplay status={status} />
                 </div>
-
-                <SensorCard sensorData={sensorData} />
-
-                <FeatureCard 
-                    title="Gas Detection"
-                    icon={<Wind />}
-                    description="Monitoring for harmful gases."
-                />
-
-                <FeatureCard 
-                    title="GPS Tracking"
-                    icon={<MapPin />}
-                    description="Real-time fence-line location."
-                />
             </div>
 
 
