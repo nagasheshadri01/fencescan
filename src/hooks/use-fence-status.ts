@@ -1,60 +1,62 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { ref, onValue, set, get } from 'firebase/database';
-import { database } from '@/lib/firebase';
+import { useMemo } from 'react';
+import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
-type FenceStatus = 'LEGAL' | 'ILLEGAL';
+type FenceStatusValue = 'LEGAL' | 'ILLEGAL';
 type LoadingStatus = 'LOADING';
-export type Status = FenceStatus | LoadingStatus;
+export type Status = FenceStatusValue | LoadingStatus;
+
+interface FenceStatusDoc {
+    status: FenceStatusValue;
+    lastUpdated: string;
+}
+
+interface SensorDataDoc {
+    temperature: string;
+    smokeDetected: boolean;
+    lastRead: string;
+}
 
 export function useFenceStatus() {
-  const [status, setStatus] = useState<Status>('LOADING');
-  const [sensorData, setSensorData] = useState<string>('Loading sensor data...');
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
+  const fenceStatusRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'fence_status/latest');
+  }, [firestore]);
+
+  const sensorDataRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'sensor_data/static');
+  }, [firestore]);
+
+  const { data: fenceStatusDoc, isLoading: isFenceStatusLoading } = useDoc<FenceStatusDoc>(fenceStatusRef);
+  const { data: sensorDataDoc, isLoading: isSensorDataLoading } = useDoc<SensorDataDoc>(sensorDataRef);
+  
+  const status: Status = isFenceStatusLoading ? 'LOADING' : (fenceStatusDoc?.status || 'ILLEGAL');
+  
+  const setFenceStatus = (newStatus: FenceStatusValue) => {
+    if (firestore) {
+      const docRef = doc(firestore, 'fence_status/latest');
+      const dataToSet = {
+        status: newStatus,
+        lastUpdated: new Date().toISOString(),
+      };
+      setDocumentNonBlocking(docRef, dataToSet, { merge: true });
     }
-
-    const statusRef = ref(database, 'fence/status');
-    const sensorRef = ref(database, 'sensor/temp_smoke');
-
-    const unsubscribeStatus = onValue(statusRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data === 'LEGAL' || data === 'ILLEGAL') {
-        setStatus(data);
-      } else {
-        setStatus('ILLEGAL'); // Default to a safe state if data is invalid or null
-      }
-    }, (error) => {
-        console.error("Firebase status read failed: ", error);
-        setStatus('ILLEGAL');
-    });
-
-    get(sensorRef).then((snapshot) => {
-      if (snapshot.exists()) {
-        setSensorData(snapshot.val());
-      } else {
-        // As per PRD, use a placeholder if not present in DB
-        setSensorData("25C - NO SMOKE");
-      }
-    }).catch((error) => {
-      console.error("Firebase sensor read failed: ", error);
-      setSensorData('Failed to load sensor data.');
-    });
-
-    return () => {
-      unsubscribeStatus();
-    };
-  }, []);
-
-  const setFenceStatus = (newStatus: FenceStatus) => {
-    const statusRef = ref(database, 'fence/status');
-    set(statusRef, newStatus).catch((error) => {
-      console.error('Failed to set fence status:', error);
-    });
   };
+
+  const sensorData = useMemo(() => {
+    if (isSensorDataLoading || !sensorDataDoc) {
+        return null;
+    }
+    return {
+        temperature: sensorDataDoc.temperature,
+        smokeDetected: sensorDataDoc.smokeDetected,
+    };
+  }, [sensorDataDoc, isSensorDataLoading]);
 
   return { status, sensorData, setFenceStatus };
 }

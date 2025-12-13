@@ -60,7 +60,7 @@ export default function AdminPage() {
         </CardContent>
         <CardFooter className="flex-col items-start text-sm text-muted-foreground border-t pt-4">
           <p className="font-bold">Static Sensor Info:</p>
-          <p>{sensorData}</p>
+          <p>{sensorData ? `Temp: ${sensorData.temperature} - Smoke: ${sensorData.smokeDetected ? 'Yes' : 'No'}` : 'Loading...'}</p>
         </CardFooter>
       </Card>
       <Button variant="link" asChild className="mt-8">

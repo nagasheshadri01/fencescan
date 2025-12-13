@@ -49,7 +49,7 @@ export default function DashboardPage() {
 
       <div className="mt-8 text-center text-zinc-400">
         <p className="font-bold">Pre-set Sensor Status:</p>
-        <p>{sensorData}</p>
+         <p>{sensorData ? `Temp: ${sensorData.temperature} - Smoke: ${sensorData.smokeDetected ? 'Yes' : 'No'}` : 'Loading...'}</p>
       </div>
 
       <Button variant="link" asChild className="mt-8 text-zinc-300 hover:text-zinc-50">
