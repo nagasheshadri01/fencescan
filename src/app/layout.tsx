@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import Auth from '@/components/Auth';
 
 export const metadata: Metadata = {
   title: 'FenceSync',
@@ -25,7 +26,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
-          {children}
+          <Auth>{children}</Auth>
         </FirebaseClientProvider>
         <Toaster />
       </body>
