@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { Activity, Thermometer, Wind } from 'lucide-react';
 
 interface EventDoc {
   message: string;
@@ -90,10 +91,11 @@ const PrimaryStatusPanel = ({ status }: { status: Status }) => {
   );
 };
 
-const AnalyticalCard = ({ title, value, subtitle }: { title: string; value: string; subtitle: string }) => (
+const AnalyticalCard = ({ title, value, subtitle, icon }: { title: string; value: string; subtitle: string; icon?: React.ReactNode }) => (
   <Card className="border-border/30 bg-card/80">
-    <CardHeader>
-      <CardTitle className="text-md font-medium text-muted-foreground">{title}</CardTitle>
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      {icon}
     </CardHeader>
     <CardContent>
       <p className="text-4xl font-bold text-foreground">{value}</p>
@@ -218,7 +220,21 @@ export default function Dashboard1Page() {
             title="Pulse Activity"
             value={pulseValue}
             subtitle="Expected operating range: 1-2 pulses/sec"
+            icon={<Activity className="h-4 w-4 text-muted-foreground" />}
           />
+          <AnalyticalCard 
+            title="Temperature"
+            value="24°C"
+            subtitle="Within operational limits"
+            icon={<Thermometer className="h-4 w-4 text-muted-foreground" />}
+          />
+          <AnalyticalCard 
+            title="Gas Sensor"
+            value="Normal"
+            subtitle="No anomalies detected"
+            icon={<Wind className="h-4 w-4 text-muted-foreground" />}
+          />
+          
           <DiagnosisCard status={status} />
           <ConfidenceCard status={status} />
           
