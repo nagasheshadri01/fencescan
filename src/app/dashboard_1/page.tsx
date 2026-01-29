@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
-import { Activity, Thermometer, Wind } from 'lucide-react';
+import { Activity, Wind } from 'lucide-react';
 
 interface EventDoc {
   message: string;
@@ -221,12 +221,6 @@ export default function Dashboard1Page() {
             value={pulseValue}
             subtitle="Expected operating range: 1-2 pulses/sec"
             icon={<Activity className="h-4 w-4 text-muted-foreground" />}
-          />
-          <AnalyticalCard 
-            title="Temperature"
-            value="24°C"
-            subtitle="Within operational limits"
-            icon={<Thermometer className="h-4 w-4 text-muted-foreground" />}
           />
           <AnalyticalCard 
             title="Gas Sensor"
