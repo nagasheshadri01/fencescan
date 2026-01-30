@@ -1,91 +1,59 @@
 'use client';
 
-import { useFenceStatus, Status } from '@/hooks/use-fence-status';
-import { Progress } from '@/components/ui/progress';
+import { useFenceData, FenceData, FenceStatusValue } from '@/hooks/use-fence-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useEffect, useState, useMemo } from 'react';
-import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, orderBy, limit, doc, setDoc } from 'firebase/firestore';
-import { Activity, Wind, RefreshCw } from 'lucide-react';
+import { Activity, Wind, User, Bot } from 'lucide-react';
+import { useMemo } from 'react';
 
-interface EventDoc {
-  message: string;
-  timestamp: any;
-}
-
-interface SensorDataDoc {
-  gasValue: number;
-  lastRead: any;
-}
-
-function useSensorData() {
-    const firestore = useFirestore();
-
-    const sensorDataRef = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return doc(firestore, 'sensor_data/latest');
-    }, [firestore]);
-
-    const { data: sensorData, isLoading, error } = useDoc<SensorDataDoc>(sensorDataRef);
-
-    const refreshSensorData = () => {
-        if(firestore) {
-            const requestRef = doc(firestore, 'sensor_requests/latest');
-            setDoc(requestRef, { requestedAt: new Date().toISOString() });
-        }
-    };
-    
-    return { sensorData, isLoading, error, refreshSensorData };
-}
+type Status = FenceStatusValue | 'LOADING';
 
 
 const StatusLED = ({ status }: { status: Status }) => {
-  const colorClass = {
+  const colorClass = useMemo(() => ({
     'LEGAL': 'bg-green-500 shadow-[0_0_10px_theme(colors.green.500)] animate-pulse',
     'ILLEGAL_NO_PULSE': 'bg-red-500 shadow-[0_0_10px_theme(colors.red.500)] animate-pulse',
     'ILLEGAL_HIGH_PULSE': 'bg-red-500 shadow-[0_0_10px_theme(colors.red.500)] animate-pulse',
-    'NOT_DETECTED': 'bg-amber-500 shadow-[0_0_10px_theme(colors.amber.500)]',
+    'NO_FENCE': 'bg-amber-500 shadow-[0_0_10px_theme(colors.amber.500)]',
     'DETECTING': 'bg-blue-500 shadow-[0_0_10px_theme(colors.blue.500)] animate-pulse',
     'LOADING': 'bg-gray-500',
-  }[status];
+  }[status]), [status]);
 
   return <div className={cn('w-3 h-3 rounded-full transition-all', colorClass)} />;
 };
 
 const PrimaryStatusPanel = ({ status }: { status: Status }) => {
-  const statusConfig = {
+  const statusConfig = useMemo(() => ({
     LEGAL: {
-      text: 'FENCE LIVE',
+      text: 'Normal Fence Detected',
       explanation: 'Normal fence operation detected. Pulse rate within expected range.',
       className: 'text-green-400',
       bgClassName: 'bg-green-900/20',
       glowClass: 'shadow-[0_0_20px_theme(colors.green.900)]',
     },
     ILLEGAL_NO_PULSE: {
-      text: 'ILLEGAL – NO PULSE',
+      text: 'Illegal Fence – No Pulse',
       explanation: 'No fence pulse detected. Possible power failure, wire break, or energizer fault.',
       className: 'text-red-400 animate-pulse',
       bgClassName: 'bg-red-900/20',
       glowClass: 'shadow-[0_0_20px_theme(colors.red.900)]',
     },
     ILLEGAL_HIGH_PULSE: {
-        text: 'ILLEGAL – HIGH PULSE RATE',
+        text: 'Illegal Fence – High Pulse',
         explanation: 'Abnormally high pulse rate detected. Possible short circuit, grounding issue, or active tampering.',
         className: 'text-red-400 animate-pulse',
         bgClassName: 'bg-red-900/20',
         glowClass: 'shadow-[0_0_20px_theme(colors.red.900)]',
     },
-    NOT_DETECTED: {
-      text: 'NO FENCE DETECTED',
+    NO_FENCE: {
+      text: 'No Fence Detected',
       explanation: 'Fence signal unavailable. Fence may be disconnected or system is offline.',
       className: 'text-amber-400',
       bgClassName: 'bg-amber-900/20',
       glowClass: 'shadow-[0_0_20px_theme(colors.amber.900)]',
     },
     DETECTING: {
-      text: 'DETECTING...',
+      text: 'Detecting…',
       explanation: 'Calibrating sensors and monitoring electrical pulses to determine fence state.',
       className: 'text-blue-400 animate-pulse',
       bgClassName: 'bg-blue-900/20',
@@ -98,7 +66,7 @@ const PrimaryStatusPanel = ({ status }: { status: Status }) => {
       bgClassName: 'bg-gray-900/20',
       glowClass: 'shadow-[0_0_20px_theme(colors.gray.900)]',
     },
-  };
+  }), []);
 
   const current = statusConfig[status];
 
@@ -130,87 +98,24 @@ const AnalyticalCard = ({ title, value, subtitle, icon }: { title: string; value
   </Card>
 );
 
-const ConfidenceCard = ({ status }: { status: Status }) => {
-  const confidence = {
-    LEGAL: 98,
-    ILLEGAL_NO_PULSE: 25,
-    ILLEGAL_HIGH_PULSE: 42,
-    NOT_DETECTED: 0,
-    DETECTING: 50,
-    LOADING: 0,
-  }[status];
-
-  return (
-    <Card className="border-border/30 bg-card/80">
-      <CardHeader>
-        <CardTitle className="text-md font-medium text-muted-foreground">System Confidence Level</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-4xl font-bold text-foreground">{confidence}%</p>
-        <Progress value={confidence} className="mt-2 h-2" />
-        <p className="text-sm text-muted-foreground mt-2">Derived from simulated pulse stability</p>
-      </CardContent>
-    </Card>
-  );
-};
-
-const DiagnosisCard = ({ status }: { status: Status }) => {
-  const diagnosis = {
-    LEGAL: 'Fence energizer operating within expected parameters.',
-    ILLEGAL_NO_PULSE: 'Fence pulse absent. System integrity compromised.',
-    ILLEGAL_HIGH_PULSE: 'Pulse anomaly detected. Fence may be shorted or under interference.',
-    NOT_DETECTED: 'No diagnosable fence signal available.',
-    DETECTING: 'Analysis in progress.',
-    LOADING: 'Awaiting data...',
-  }[status];
-
-  return (
-    <Card className="border-border/30 bg-card/80">
-      <CardHeader>
-        <CardTitle className="text-md font-medium text-muted-foreground">System Diagnosis</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-lg text-foreground">{diagnosis}</p>
-      </CardContent>
-    </Card>
-  );
-};
-
-const EventTimeline = () => {
-  const firestore = useFirestore();
-  const eventsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'events'), orderBy('timestamp', 'desc'), limit(5));
-  }, [firestore]);
-
-  const { data: events, isLoading } = useCollection<EventDoc>(eventsQuery);
-
-  return (
-    <Card className="border-border/30 bg-card/80">
-      <CardHeader>
-        <CardTitle className="text-md font-medium text-muted-foreground">System Event Log</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {isLoading && <p className="text-muted-foreground">Loading events...</p>}
-        {!isLoading && (!events || events.length === 0) ? (
-          <p className="text-muted-foreground">Awaiting system events...</p>
-        ) : (
-          <ul className="space-y-2 text-sm">
-            {events?.map((event) => (
-              <li key={event.id} className="text-muted-foreground font-mono">
-                {event.timestamp.toDate().toLocaleTimeString()} - {event.message}
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
+const SourceCard = ({ source }: { source: 'ADMIN' | 'AUTO' | 'N/A' }) => {
+    const icon = source === 'ADMIN' ? <User className="h-4 w-4 text-muted-foreground" /> : <Bot className="h-4 w-4 text-muted-foreground" />;
+    const subtitle = source === 'ADMIN' ? 'Manual override active' : 'Real-time device updates';
+    
+    return (
+        <AnalyticalCard
+            title="Control Source"
+            value={source}
+            subtitle={subtitle}
+            icon={icon}
+        />
+    );
+}
 
 export default function Dashboard1Page() {
-  const { status, pulseValue } = useFenceStatus();
-  const { sensorData, isLoading: isSensorLoading, refreshSensorData } = useSensorData();
+  const { data, isLoading } = useFenceData();
+
+  const status: Status = isLoading ? 'LOADING' : data?.status ?? 'DETECTING';
 
   return (
     <main className="min-h-screen bg-background p-4 sm:p-8">
@@ -235,33 +140,17 @@ export default function Dashboard1Page() {
           </div>
 
           <AnalyticalCard 
-            title="Pulse Activity"
-            value={pulseValue}
-            subtitle="Expected operating range: 1-2 pulses/sec"
-            icon={<Activity className="h-4 w-4 text-muted-foreground" />}
-          />
-          <AnalyticalCard 
             title="Gas Sensor"
-            value={isSensorLoading ? '...' : `${sensorData?.gasValue ?? 'N/A'} PPM`}
+            value={isLoading ? '...' : `${data?.gasValue ?? 'N/A'} PPM`}
             subtitle="Anomalies will be flagged"
             icon={<Wind className="h-4 w-4 text-muted-foreground" />}
           />
-          
-          <DiagnosisCard status={status} />
-          <ConfidenceCard status={status} />
-          
-          <div className="md:col-span-2">
-            <EventTimeline />
-          </div>
+          <SourceCard source={isLoading ? 'N/A' : data?.source ?? 'N/A'} />
 
         </div>
 
         <footer className="text-center mt-8 text-sm text-muted-foreground">
-          <Button onClick={refreshSensorData} disabled={isSensorLoading} variant="outline" className="mb-4">
-            <RefreshCw className={`mr-2 h-4 w-4 ${isSensorLoading ? 'animate-spin' : ''}`} />
-            Refresh Sensor Data
-          </Button>
-          <div>Monitoring system synchronized</div>
+          <div>Monitoring system synchronized via Realtime Database</div>
         </footer>
       </div>
     </main>

@@ -4,6 +4,7 @@ import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore'
+import { getDatabase } from 'firebase/database';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -33,10 +34,18 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
+  const config = firebaseApp.options;
+
+  // Ensure databaseURL is present for Realtime Database
+  if (!(config as any).databaseURL && config.projectId) {
+    (config as any).databaseURL = `https://${config.projectId}-default-rtdb.firebaseio.com`;
+  }
+
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp)
+    firestore: getFirestore(firebaseApp),
+    database: getDatabase(firebaseApp),
   };
 }
 

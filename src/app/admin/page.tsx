@@ -1,13 +1,17 @@
 'use client';
 
-import { useFenceStatus } from '@/hooks/use-fence-status';
+import { useFenceData, FenceStatusValue } from '@/hooks/use-fence-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, WifiOff, RefreshCw, ChevronLeft, ZapOff, Zap } from 'lucide-react';
+import { CheckCircle, WifiOff, RefreshCw, ChevronLeft, ZapOff, Zap, Bot } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminPage() {
-  const { status, setFenceStatus } = useFenceStatus();
+  const { data, isLoading, setFenceStateByAdmin, releaseToAuto } = useFenceData();
+
+  const handleSetStatus = (status: FenceStatusValue) => {
+    setFenceStateByAdmin(status);
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
@@ -24,18 +28,18 @@ export default function AdminPage() {
             <Button
               size="lg"
               className="h-16 text-lg bg-accent text-accent-foreground hover:bg-accent/90"
-              onClick={() => setFenceStatus('LEGAL')}
-              disabled={status === 'LOADING'}
+              onClick={() => handleSetStatus('LEGAL')}
+              disabled={isLoading}
             >
               <CheckCircle className="mr-2 h-6 w-6" />
               Simulate Normal Fence
             </Button>
-             <Button
+            <Button
               size="lg"
               variant="destructive"
               className="h-16 text-lg"
-              onClick={() => setFenceStatus('ILLEGAL_NO_PULSE')}
-              disabled={status === 'LOADING'}
+              onClick={() => handleSetStatus('ILLEGAL_NO_PULSE')}
+              disabled={isLoading}
             >
               <ZapOff className="mr-2 h-6 w-6" />
               Simulate Illegal - No Pulse
@@ -44,18 +48,18 @@ export default function AdminPage() {
               size="lg"
               variant="destructive"
               className="h-16 text-lg"
-              onClick={() => setFenceStatus('ILLEGAL_HIGH_PULSE')}
-              disabled={status === 'LOADING'}
+              onClick={() => handleSetStatus('ILLEGAL_HIGH_PULSE')}
+              disabled={isLoading}
             >
               <Zap className="mr-2 h-6 w-6" />
-             Simulate Illegal - High Pulse
+              Simulate Illegal - High Pulse
             </Button>
             <Button
               size="lg"
               variant="secondary"
               className="h-16 text-lg bg-amber-500 text-black hover:bg-amber-600"
-              onClick={() => setFenceStatus('NOT_DETECTED')}
-              disabled={status === 'LOADING'}
+              onClick={() => handleSetStatus('NO_FENCE')}
+              disabled={isLoading}
             >
               <WifiOff className="mr-2 h-6 w-6" />
               Simulate No Fence Detected
@@ -64,18 +68,33 @@ export default function AdminPage() {
               size="lg"
               variant="outline"
               className="h-16 text-lg"
-              onClick={() => setFenceStatus('DETECTING')}
-              disabled={status === 'LOADING'}
+              onClick={() => handleSetStatus('DETECTING')}
+              disabled={isLoading}
             >
               <RefreshCw className="mr-2 h-6 w-6" />
               Reset to Detecting
             </Button>
+            <Button
+              size="lg"
+              variant="ghost"
+              className="h-16 text-lg"
+              onClick={releaseToAuto}
+              disabled={isLoading || data?.source === 'AUTO'}
+            >
+              <Bot className="mr-2 h-6 w-6" />
+              Release to Auto-Control
+            </Button>
           </div>
         </CardContent>
-         <CardFooter className="flex justify-center pt-4">
+        <CardFooter className="flex justify-center pt-4">
+          {isLoading ? (
+            <div className="text-muted-foreground">Loading state...</div>
+          ) : (
             <div className="text-muted-foreground">
-              Current State: <span className="font-bold text-foreground">{status}</span>
+              Current State: <span className="font-bold text-foreground">{data?.status ?? 'N/A'}</span> ({' '}
+              <span className="font-bold text-foreground">{data?.source ?? 'N/A'}</span> )
             </div>
+          )}
         </CardFooter>
       </Card>
       <Button variant="link" asChild className="mt-8">

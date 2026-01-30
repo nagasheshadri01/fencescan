@@ -1,41 +1,40 @@
 {
   "entities": {
-    "FenceStatus": {
+    "FenceData": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "FenceStatus",
+      "title": "FenceData",
       "type": "object",
-      "description": "Represents the status of the electric fence.",
+      "description": "Represents the real-time state of the electric fence in Firebase Realtime Database.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the FenceStatus entity."
-        },
         "status": {
           "type": "string",
-          "description": "The current status of the fence (LEGAL or ILLEGAL)."
+          "description": "The current status of the fence (e.g., 'LEGAL', 'ILLEGAL_NO_PULSE')."
+        },
+        "source": {
+          "type": "string",
+          "description": "Indicates if the status was set by the 'ADMIN' panel or 'AUTO'matically by the device."
+        },
+        "gasValue": {
+          "type": "number",
+          "description": "The gas level reading from the MQ sensor."
         },
         "lastUpdated": {
-          "type": "string",
-          "description": "Timestamp of the last status update.",
-          "format": "date-time"
-        },
-        "pulseValue": {
-          "type": "string",
-          "description": "The pulse rate of the fence (e.g., '1.2 pulses/sec')."
+          "type": "number",
+          "description": "Timestamp of the last status update."
         }
       },
       "required": [
-        "id",
         "status",
-        "lastUpdated",
-        "pulseValue"
+        "source",
+        "gasValue",
+        "lastUpdated"
       ]
     },
     "SensorData": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "SensorData",
       "type": "object",
-      "description": "Represents sensor data from the IoT device.",
+      "description": "Represents sensor data from the IoT device. This is for the original dashboard and is separate from the new Realtime Database structure.",
       "properties": {
         "id": {
           "type": "string",
@@ -56,45 +55,6 @@
         "gasValue",
         "lastRead"
       ]
-    },
-    "SensorRequest": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "SensorRequest",
-      "type": "object",
-      "description": "A request to the IoT device to read and update sensor data.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the request."
-        },
-        "requestedAt": {
-          "type": "string",
-          "description": "Timestamp of when the sensor data refresh was requested.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "requestedAt"
-      ]
-    },
-    "Event": {
-      "title": "Event",
-      "description": "Represents a system event log.",
-      "type": "object",
-      "properties": {
-        "message": {
-          "type": "string"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "message",
-        "timestamp"
-      ]
     }
   },
   "auth": {
@@ -106,19 +66,13 @@
   "firestore": {
     "structure": [
       {
-        "path": "/fence_status/{fenceStatusId}",
+        "path": "/fence",
         "definition": {
-          "entityName": "FenceStatus",
+          "entityName": "FenceData",
           "schema": {
-            "$ref": "#/backend/entities/FenceStatus"
+            "$ref": "#/backend/entities/FenceData"
           },
-          "description": "Stores the status of the electric fence.  Since this application is using Realtime Database and not Firestore, this path is conceptual. `fenceStatusId` is a unique ID.",
-          "params": [
-            {
-              "name": "fenceStatusId",
-              "description": "Unique identifier for the fence status document."
-            }
-          ]
+          "description": "Stores the real-time state of the electric fence. This path is in Firebase Realtime Database, not Firestore."
         }
       },
       {
@@ -128,7 +82,7 @@
           "schema": {
             "$ref": "#/backend/entities/SensorData"
           },
-          "description": "Stores sensor data for the fence. Since this application is using Realtime Database and not Firestore, this path is conceptual. `sensorDataId` is a unique ID.",
+          "description": "Stores sensor data for the original dashboard. This path is in Firestore.",
           "params": [
             {
               "name": "sensorDataId",
@@ -136,34 +90,8 @@
             }
           ]
         }
-      },
-      {
-        "path": "/sensor_requests/{requestId}",
-        "definition": {
-          "entityName": "SensorRequest",
-          "schema": {
-            "$ref": "#/backend/entities/SensorRequest"
-          },
-          "description": "Stores requests for the IoT device to perform a sensor read.",
-          "params": [
-            {
-              "name": "requestId",
-              "description": "Unique identifier for the request document."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/events/{eventId}",
-        "definition": {
-          "entityName": "Event",
-          "schema": {
-            "$ref": "#/backend/entities/Event"
-          },
-          "description": "Stores event logs."
-        }
       }
     ],
-    "reasoning": "Given the error reported, the application is using the Firebase Realtime Database and not Firestore. The error indicates that the Firebase app was initialized without a project ID, leading to the failure of retrieving the database URL. This problem is not related to Firestore structure but to Firebase initialization. There is no need for a complex Firestore structure, as the application only uses Firebase to sync a status (LEGAL/ILLEGAL) between the admin panel and the user dashboard, and some static sensor data. This can be achieved with a very simple Realtime Database structure. The app only stores FenceStatus and SensorData. These entities are simple and do not require complex authorization rules. A straightforward approach is to use a simple key-value pair structure in Realtime Database. This approach directly addresses the application requirements with minimal overhead. Since this is Realtime Database, the recommendation does not require any rules or authorization independence, as those concepts are inherent in Firestore and its rule structure. The requested changes do not need to change to Firestore."
+    "reasoning": "The application is being refactored to use Firebase Realtime Database for its core two-way data synchronization between the web app and an ESP8266 device. The primary data is stored under the `/fence` path in RTDB. The data structure is kept flat and simple for easy consumption by the microcontroller. The original Firestore structure for `sensor_data` is kept for the unmodified `/dashboard` page, while the new `/dashboard_1` and `/admin` pages will use the Realtime Database. This approach fulfills the new requirements while maintaining backward compatibility for the old dashboard."
   }
 }
