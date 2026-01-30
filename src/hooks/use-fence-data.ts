@@ -21,8 +21,8 @@ export function useFenceData() {
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    // Wait until we have the db instance and the user is authenticated.
-    if (!db || isAuthLoading || !user) {
+    // Wait until we have the db instance.
+    if (!db) {
       setDataLoading(true); // Keep loading until ready
       return;
     }
@@ -31,7 +31,7 @@ export function useFenceData() {
     const unsubscribe = onValue(fenceRef, (snapshot) => {
       if (snapshot.exists()) {
         setData(snapshot.val());
-      } else {
+      } else if (user) { // Only attempt to write if a user is available
         // If no data exists, initialize with default detecting state
         set(fenceRef, {
             status: 'DETECTING',
