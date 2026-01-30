@@ -8,7 +8,7 @@
       "properties": {
         "status": {
           "type": "string",
-          "description": "The current status of the fence (e.g., 'LEGAL', 'ILLEGAL_NO_PULSE')."
+          "description": "The current status of the fence (e.g., 'ON')."
         },
         "source": {
           "type": "string",
