@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useDatabase } from '@/firebase';
+import { useDatabase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { ref, onValue, set, serverTimestamp } from 'firebase/database';
 
 export type FenceStatusValue = 'LEGAL' | 'ILLEGAL_NO_PULSE' | 'ILLEGAL_HIGH_PULSE' | 'DETECTING' | 'NO_FENCE';
@@ -40,7 +40,11 @@ export function useFenceData() {
       }
       setIsLoading(false);
     }, (error) => {
-        console.error("Firebase Realtime Database read failed: " + error.message);
+        const contextualError = new FirestorePermissionError({
+          operation: 'list',
+          path: 'fence',
+        });
+        errorEmitter.emit('permission-error', contextualError);
         setIsLoading(false);
     });
 
