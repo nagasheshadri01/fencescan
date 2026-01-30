@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useDatabase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useDatabase, useUser } from '@/firebase';
 import { ref, onValue, set, serverTimestamp } from 'firebase/database';
 
 export type FenceStatusValue = 'LEGAL' | 'ILLEGAL_NO_PULSE' | 'ILLEGAL_HIGH_PULSE' | 'DETECTING' | 'NO_FENCE';
@@ -16,12 +16,14 @@ export interface FenceData {
 
 export function useFenceData() {
   const db = useDatabase();
+  const { user, isUserLoading: isAuthLoading } = useUser();
   const [data, setData] = useState<FenceData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    if (!db) {
-      setIsLoading(false);
+    // Wait until we have the db instance and the user is authenticated.
+    if (!db || isAuthLoading || !user) {
+      setDataLoading(true); // Keep loading until ready
       return;
     }
 
@@ -38,18 +40,15 @@ export function useFenceData() {
             lastUpdated: serverTimestamp(),
         });
       }
-      setIsLoading(false);
+      setDataLoading(false);
     }, (error) => {
-        const contextualError = new FirestorePermissionError({
-          operation: 'list',
-          path: 'fence',
-        });
-        errorEmitter.emit('permission-error', contextualError);
-        setIsLoading(false);
+        // Correctly log the Realtime Database error instead of creating a misleading Firestore error.
+        console.error("Firebase Realtime Database read failed:", error);
+        setDataLoading(false);
     });
 
     return () => unsubscribe();
-  }, [db]);
+  }, [db, user, isAuthLoading]);
 
   const setFenceStateByAdmin = (newStatus: FenceStatusValue) => {
     if (db) {
@@ -76,6 +75,7 @@ export function useFenceData() {
       }
   };
 
+  const isLoading = isAuthLoading || dataLoading;
 
   return { data, isLoading, setFenceStateByAdmin, releaseToAuto };
 }
