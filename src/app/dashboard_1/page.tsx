@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, limit, doc, setDoc } from 'firebase/firestore';
-import { Activity, Wind, Thermometer, RefreshCw } from 'lucide-react';
+import { Activity, Wind, RefreshCw } from 'lucide-react';
 
 interface EventDoc {
   message: string;
@@ -16,7 +16,6 @@ interface EventDoc {
 }
 
 interface SensorDataDoc {
-  temperature: number;
   gasValue: number;
   lastRead: any;
 }
@@ -230,8 +229,8 @@ export default function Dashboard1Page() {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="md:col-span-2 lg:col-span-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="md:col-span-2">
             <PrimaryStatusPanel status={status} />
           </div>
 
@@ -240,12 +239,6 @@ export default function Dashboard1Page() {
             value={pulseValue}
             subtitle="Expected operating range: 1-2 pulses/sec"
             icon={<Activity className="h-4 w-4 text-muted-foreground" />}
-          />
-          <AnalyticalCard
-            title="Temperature"
-            value={isSensorLoading ? '...' : `${sensorData?.temperature?.toFixed(1) ?? 'N/A'} °C`}
-            subtitle={sensorData?.lastRead ? `Last read: ${sensorData.lastRead.toDate().toLocaleTimeString()}` : 'Awaiting data...'}
-            icon={<Thermometer className="h-4 w-4 text-muted-foreground" />}
           />
           <AnalyticalCard 
             title="Gas Sensor"
@@ -257,7 +250,7 @@ export default function Dashboard1Page() {
           <DiagnosisCard status={status} />
           <ConfidenceCard status={status} />
           
-          <div className="md:col-span-2 lg:col-span-3">
+          <div className="md:col-span-2">
             <EventTimeline />
           </div>
 

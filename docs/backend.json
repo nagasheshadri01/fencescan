@@ -41,10 +41,6 @@
           "type": "string",
           "description": "Unique identifier for the SensorData entity."
         },
-        "temperature": {
-          "type": "number",
-          "description": "The temperature reading from the sensor in Celsius."
-        },
         "gasValue": {
           "type": "number",
           "description": "The gas level reading from the MQ sensor (e.g., in PPM)."
@@ -57,7 +53,6 @@
       },
       "required": [
         "id",
-        "temperature",
         "gasValue",
         "lastRead"
       ]
@@ -81,6 +76,24 @@
       "required": [
         "id",
         "requestedAt"
+      ]
+    },
+    "Event": {
+      "title": "Event",
+      "description": "Represents a system event log.",
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "message",
+        "timestamp"
       ]
     }
   },
@@ -138,6 +151,16 @@
               "description": "Unique identifier for the request document."
             }
           ]
+        }
+      },
+      {
+        "path": "/events/{eventId}",
+        "definition": {
+          "entityName": "Event",
+          "schema": {
+            "$ref": "#/backend/entities/Event"
+          },
+          "description": "Stores event logs."
         }
       }
     ],
