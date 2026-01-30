@@ -3,15 +3,42 @@
 import { useFenceStatus, Status } from '@/hooks/use-fence-status';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEffect, useState, useMemo } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
-import { Activity, Wind } from 'lucide-react';
+import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, orderBy, limit, doc, setDoc } from 'firebase/firestore';
+import { Activity, Wind, Thermometer, RefreshCw } from 'lucide-react';
 
 interface EventDoc {
   message: string;
   timestamp: any;
+}
+
+interface SensorDataDoc {
+  temperature: number;
+  gasValue: number;
+  lastRead: any;
+}
+
+function useSensorData() {
+    const firestore = useFirestore();
+
+    const sensorDataRef = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return doc(firestore, 'sensor_data/latest');
+    }, [firestore]);
+
+    const { data: sensorData, isLoading, error } = useDoc<SensorDataDoc>(sensorDataRef);
+
+    const refreshSensorData = () => {
+        if(firestore) {
+            const requestRef = doc(firestore, 'sensor_requests/latest');
+            setDoc(requestRef, { requestedAt: new Date().toISOString() });
+        }
+    };
+    
+    return { sensorData, isLoading, error, refreshSensorData };
 }
 
 
@@ -183,16 +210,8 @@ const EventTimeline = () => {
 };
 
 export default function Dashboard1Page() {
-  const { status } = useFenceStatus();
-
-  const pulseValue = {
-    LEGAL: '1.2 pulses/sec',
-    ILLEGAL_NO_PULSE: '0 pulses/sec',
-    ILLEGAL_HIGH_PULSE: '3.5 pulses/sec',
-    NOT_DETECTED: '---',
-    DETECTING: '---',
-    LOADING: '---',
-  }[status];
+  const { status, pulseValue } = useFenceStatus();
+  const { sensorData, isLoading: isSensorLoading, refreshSensorData } = useSensorData();
 
   return (
     <main className="min-h-screen bg-background p-4 sm:p-8">
@@ -211,8 +230,8 @@ export default function Dashboard1Page() {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="md:col-span-2 lg:col-span-3">
             <PrimaryStatusPanel status={status} />
           </div>
 
@@ -222,24 +241,34 @@ export default function Dashboard1Page() {
             subtitle="Expected operating range: 1-2 pulses/sec"
             icon={<Activity className="h-4 w-4 text-muted-foreground" />}
           />
+          <AnalyticalCard
+            title="Temperature"
+            value={isSensorLoading ? '...' : `${sensorData?.temperature?.toFixed(1) ?? 'N/A'} °C`}
+            subtitle={sensorData?.lastRead ? `Last read: ${sensorData.lastRead.toDate().toLocaleTimeString()}` : 'Awaiting data...'}
+            icon={<Thermometer className="h-4 w-4 text-muted-foreground" />}
+          />
           <AnalyticalCard 
             title="Gas Sensor"
-            value="Normal"
-            subtitle="No anomalies detected"
+            value={isSensorLoading ? '...' : `${sensorData?.gasValue ?? 'N/A'} PPM`}
+            subtitle="Anomalies will be flagged"
             icon={<Wind className="h-4 w-4 text-muted-foreground" />}
           />
           
           <DiagnosisCard status={status} />
           <ConfidenceCard status={status} />
           
-          <div className="lg:col-span-3">
+          <div className="md:col-span-2 lg:col-span-3">
             <EventTimeline />
           </div>
 
         </div>
 
         <footer className="text-center mt-8 text-sm text-muted-foreground">
-          Monitoring system synchronized
+          <Button onClick={refreshSensorData} disabled={isSensorLoading} variant="outline" className="mb-4">
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSensorLoading ? 'animate-spin' : ''}`} />
+            Refresh Sensor Data
+          </Button>
+          <div>Monitoring system synchronized</div>
         </footer>
       </div>
     </main>

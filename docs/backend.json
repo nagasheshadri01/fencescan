@@ -18,31 +18,36 @@
           "type": "string",
           "description": "Timestamp of the last status update.",
           "format": "date-time"
+        },
+        "pulseValue": {
+          "type": "string",
+          "description": "The pulse rate of the fence (e.g., '1.2 pulses/sec')."
         }
       },
       "required": [
         "id",
         "status",
-        "lastUpdated"
+        "lastUpdated",
+        "pulseValue"
       ]
     },
     "SensorData": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "SensorData",
       "type": "object",
-      "description": "Represents static sensor data.",
+      "description": "Represents sensor data from the IoT device.",
       "properties": {
         "id": {
           "type": "string",
           "description": "Unique identifier for the SensorData entity."
         },
         "temperature": {
-          "type": "string",
-          "description": "The temperature reading from the sensor."
+          "type": "number",
+          "description": "The temperature reading from the sensor in Celsius."
         },
-        "smokeDetected": {
-          "type": "boolean",
-          "description": "Indicates whether smoke has been detected."
+        "gasValue": {
+          "type": "number",
+          "description": "The gas level reading from the MQ sensor (e.g., in PPM)."
         },
         "lastRead": {
           "type": "string",
@@ -53,8 +58,29 @@
       "required": [
         "id",
         "temperature",
-        "smokeDetected",
+        "gasValue",
         "lastRead"
+      ]
+    },
+    "SensorRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SensorRequest",
+      "type": "object",
+      "description": "A request to the IoT device to read and update sensor data.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the request."
+        },
+        "requestedAt": {
+          "type": "string",
+          "description": "Timestamp of when the sensor data refresh was requested.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "requestedAt"
       ]
     }
   },
@@ -94,6 +120,22 @@
             {
               "name": "sensorDataId",
               "description": "Unique identifier for the sensor data document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/sensor_requests/{requestId}",
+        "definition": {
+          "entityName": "SensorRequest",
+          "schema": {
+            "$ref": "#/backend/entities/SensorRequest"
+          },
+          "description": "Stores requests for the IoT device to perform a sensor read.",
+          "params": [
+            {
+              "name": "requestId",
+              "description": "Unique identifier for the request document."
             }
           ]
         }
