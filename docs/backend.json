@@ -12,22 +12,27 @@
         },
         "source": {
           "type": "string",
-          "description": "Indicates if the status was set by the 'ADMIN' panel or 'AUTO'matically by the device."
-        },
-        "gasValue": {
-          "type": "number",
-          "description": "The gas level reading from the MQ sensor."
-        },
-        "lastUpdated": {
-          "type": "number",
-          "description": "Timestamp of the last status update."
+          "description": "Indicates if the status was set by the 'web' admin panel."
         }
       },
       "required": [
         "status",
-        "source",
-        "gasValue",
-        "lastUpdated"
+        "source"
+      ]
+    },
+    "Sensors": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Sensors",
+      "type": "object",
+      "description": "Represents sensor data from the IoT device in Realtime Database.",
+      "properties": {
+        "gas": {
+          "type": "number",
+          "description": "The gas level reading from the MQ sensor."
+        }
+      },
+      "required": [
+        "gas"
       ]
     },
     "SensorData": {
@@ -72,7 +77,17 @@
           "schema": {
             "$ref": "#/backend/entities/FenceData"
           },
-          "description": "Stores the real-time state of the electric fence. This path is in Firebase Realtime Database, not Firestore."
+          "description": "Stores the fence state (status and source) in Realtime Database."
+        }
+      },
+      {
+        "path": "/sensors",
+        "definition": {
+          "entityName": "Sensors",
+          "schema": {
+            "$ref": "#/backend/entities/Sensors"
+          },
+          "description": "Stores sensor data (e.g., gas) from the ESP8266 in Realtime Database."
         }
       },
       {
@@ -92,6 +107,6 @@
         }
       }
     ],
-    "reasoning": "The application is being refactored to use Firebase Realtime Database for its core two-way data synchronization between the web app and an ESP8266 device. The primary data is stored under the `/fence` path in RTDB. The data structure is kept flat and simple for easy consumption by the microcontroller. The original Firestore structure for `sensor_data` is kept for the unmodified `/dashboard` page, while the new `/dashboard_1` and `/admin` pages will use the Realtime Database. This approach fulfills the new requirements while maintaining backward compatibility for the old dashboard."
+    "reasoning": "The application uses Firebase Realtime Database for two-way data synchronization between the web app and an ESP8266 device. Data is split into two main nodes: `/fence` for device status and control source, and `/sensors` for data from the device's sensors (like gas). This flat structure is simple for a microcontroller to consume. The original Firestore structure for `sensor_data` is kept for the unmodified `/dashboard` page."
   }
 }

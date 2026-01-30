@@ -3,11 +3,11 @@
 import { useFenceData, FenceStatusValue } from '@/hooks/use-fence-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, WifiOff, RefreshCw, ChevronLeft, ZapOff, Zap, Bot } from 'lucide-react';
+import { CheckCircle, WifiOff, RefreshCw, ChevronLeft, ZapOff, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminPage() {
-  const { data, isLoading, setFenceStateByAdmin, releaseToAuto } = useFenceData();
+  const { data, isLoading, setFenceStateByAdmin } = useFenceData();
 
   const handleSetStatus = (status: FenceStatusValue) => {
     setFenceStateByAdmin(status);
@@ -73,16 +73,6 @@ export default function AdminPage() {
             >
               <RefreshCw className="mr-2 h-6 w-6" />
               Reset to Detecting
-            </Button>
-            <Button
-              size="lg"
-              variant="ghost"
-              className="h-16 text-lg"
-              onClick={releaseToAuto}
-              disabled={isLoading || data?.source === 'AUTO'}
-            >
-              <Bot className="mr-2 h-6 w-6" />
-              Release to Auto-Control
             </Button>
           </div>
         </CardContent>

@@ -1,9 +1,9 @@
 'use client';
 
-import { useFenceData, FenceData, FenceStatusValue } from '@/hooks/use-fence-data';
+import { useFenceData, FenceStatusValue } from '@/hooks/use-fence-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Activity, Wind, User, Bot } from 'lucide-react';
+import { Wind, User, Bot } from 'lucide-react';
 import { useMemo } from 'react';
 
 type Status = FenceStatusValue | 'LOADING';
@@ -98,14 +98,14 @@ const AnalyticalCard = ({ title, value, subtitle, icon }: { title: string; value
   </Card>
 );
 
-const SourceCard = ({ source }: { source: 'ADMIN' | 'AUTO' | 'N/A' }) => {
-    const icon = source === 'ADMIN' ? <User className="h-4 w-4 text-muted-foreground" /> : <Bot className="h-4 w-4 text-muted-foreground" />;
-    const subtitle = source === 'ADMIN' ? 'Manual override active' : 'Real-time device updates';
+const SourceCard = ({ source }: { source: string }) => {
+    const icon = source === 'web' ? <User className="h-4 w-4 text-muted-foreground" /> : <Bot className="h-4 w-4 text-muted-foreground" />;
+    const subtitle = source === 'web' ? 'Manual override active' : 'Real-time device updates';
     
     return (
         <AnalyticalCard
             title="Control Source"
-            value={source}
+            value={source.toUpperCase()}
             subtitle={subtitle}
             icon={icon}
         />
@@ -115,7 +115,7 @@ const SourceCard = ({ source }: { source: 'ADMIN' | 'AUTO' | 'N/A' }) => {
 export default function Dashboard1Page() {
   const { data, isLoading } = useFenceData();
 
-  const status: Status = isLoading ? 'LOADING' : data?.status ?? 'DETECTING';
+  const status: Status = isLoading ? 'LOADING' : data.status ?? 'DETECTING';
 
   return (
     <main className="min-h-screen bg-background p-4 sm:p-8">
@@ -141,11 +141,11 @@ export default function Dashboard1Page() {
 
           <AnalyticalCard 
             title="Gas Sensor"
-            value={isLoading ? '...' : `${data?.gasValue ?? 'N/A'} PPM`}
+            value={isLoading ? '...' : `${data.gas ?? 'N/A'} PPM`}
             subtitle="Anomalies will be flagged"
             icon={<Wind className="h-4 w-4 text-muted-foreground" />}
           />
-          <SourceCard source={isLoading ? 'N/A' : data?.source ?? 'N/A'} />
+          <SourceCard source={isLoading ? 'N/A' : data.source ?? 'N/A'} />
 
         </div>
 

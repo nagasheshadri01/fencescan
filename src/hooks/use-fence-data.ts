@@ -1,81 +1,66 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useDatabase, useUser } from '@/firebase';
-import { ref, onValue, set, serverTimestamp } from 'firebase/database';
+import { useDatabase } from '@/firebase';
+import { ref, onValue, update } from 'firebase/database';
 
 export type FenceStatusValue = 'LEGAL' | 'ILLEGAL_NO_PULSE' | 'ILLEGAL_HIGH_PULSE' | 'DETECTING' | 'NO_FENCE';
-export type Source = 'ADMIN' | 'AUTO';
 
-export interface FenceData {
+export interface RealtimeData {
   status: FenceStatusValue;
-  source: Source;
-  gasValue: number;
-  lastUpdated: number;
+  source: string;
+  gas: number;
+}
+
+interface RtdbRoot {
+  fence?: {
+    status: FenceStatusValue;
+    source: string;
+  };
+  sensors?: {
+    gas: number;
+  };
 }
 
 export function useFenceData() {
   const db = useDatabase();
-  const { user, isUserLoading: isAuthLoading } = useUser();
-  const [data, setData] = useState<FenceData | null>(null);
-  const [dataLoading, setDataLoading] = useState(true);
+  const [data, setData] = useState<RealtimeData>({ status: 'DETECTING', source: 'web', gas: 0 });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Wait until we have the db instance.
     if (!db) {
-      setDataLoading(true); // Keep loading until ready
       return;
     }
 
-    const fenceRef = ref(db, 'fence');
-    const unsubscribe = onValue(fenceRef, (snapshot) => {
-      if (snapshot.exists()) {
-        setData(snapshot.val());
-      } else if (user) { // Only attempt to write if a user is available
-        // If no data exists, initialize with default detecting state
-        set(fenceRef, {
-            status: 'DETECTING',
-            source: 'AUTO',
-            gasValue: 0,
-            lastUpdated: serverTimestamp(),
-        });
-      }
-      setDataLoading(false);
+    setIsLoading(true);
+    const rootRef = ref(db, '/');
+
+    const unsubscribe = onValue(rootRef, (snapshot) => {
+      const rootData = snapshot.val() as RtdbRoot | null;
+      // Merge received data with defaults to ensure a complete object
+      setData(prevData => ({
+          status: rootData?.fence?.status ?? prevData.status,
+          source: rootData?.fence?.source ?? prevData.source,
+          gas: rootData?.sensors?.gas ?? prevData.gas,
+      }));
+      setIsLoading(false);
     }, (error) => {
-        // Correctly log the Realtime Database error instead of creating a misleading Firestore error.
         console.error("Firebase Realtime Database read failed:", error);
-        setDataLoading(false);
+        setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [db, user, isAuthLoading]);
+  }, [db]);
 
   const setFenceStateByAdmin = (newStatus: FenceStatusValue) => {
     if (db) {
       const fenceRef = ref(db, 'fence');
-      const currentData = data || { gasValue: 0 };
-      set(fenceRef, {
-        ...currentData,
+      update(fenceRef, {
         status: newStatus,
-        source: 'ADMIN',
-        lastUpdated: serverTimestamp(),
+        source: 'web',
       });
     }
   };
   
-  const releaseToAuto = () => {
-      if (db) {
-          const fenceRef = ref(db, 'fence');
-           const currentData = data || { status: 'DETECTING', gasValue: 0 };
-           set(fenceRef, {
-            ...currentData,
-            source: 'AUTO',
-            lastUpdated: serverTimestamp(),
-          });
-      }
-  };
-
-  const isLoading = isAuthLoading || dataLoading;
-
-  return { data, isLoading, setFenceStateByAdmin, releaseToAuto };
+  return { data, isLoading, setFenceStateByAdmin };
 }
