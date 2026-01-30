@@ -3,8 +3,8 @@
 import { useFenceData, FenceStatusValue } from '@/hooks/use-fence-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Wind, User, Bot } from 'lucide-react';
-import { useMemo } from 'react';
+import { Wind, Zap } from 'lucide-react';
+import { useMemo, useState, useEffect } from 'react';
 
 type Status = FenceStatusValue | 'LOADING';
 
@@ -98,24 +98,72 @@ const AnalyticalCard = ({ title, value, subtitle, icon }: { title: string; value
   </Card>
 );
 
-const SourceCard = ({ source }: { source: string }) => {
-    const icon = source === 'web' ? <User className="h-4 w-4 text-muted-foreground" /> : <Bot className="h-4 w-4 text-muted-foreground" />;
-    const subtitle = source === 'web' ? 'Manual override active' : 'Real-time device updates';
-    
+const EventLog = ({ newStatus }: { newStatus: Status }) => {
+    const [events, setEvents] = useState<string[]>([]);
+    const [prevStatus, setPrevStatus] = useState<Status | null>(null);
+  
+    const pulseValueMap: Record<FenceStatusValue, string> = {
+      LEGAL: '1.2 pulses/sec',
+      ILLEGAL_NO_PULSE: '0 pulses/sec',
+      ILLEGAL_HIGH_PULSE: '3.5 pulses/sec',
+      NO_FENCE: '---',
+      DETECTING: '---',
+    };
+  
+    const statusMessageMap: Record<FenceStatusValue, string> = {
+      LEGAL: 'Fence pulse detected. System operating normally.',
+      ILLEGAL_NO_PULSE: 'Fence pulse lost. Monitoring indicates possible power failure.',
+      ILLEGAL_HIGH_PULSE: 'High-frequency pulse anomaly detected.',
+      NO_FENCE: 'Fence signal unavailable.',
+      DETECTING: 'System reset. Monitoring for fence pulse...',
+    };
+  
+    useEffect(() => {
+      if (newStatus !== 'LOADING' && newStatus !== prevStatus) {
+        const timestamp = new Date().toLocaleTimeString();
+        const pulseValue = pulseValueMap[newStatus as FenceStatusValue] || '---';
+        const eventMessage = statusMessageMap[newStatus as FenceStatusValue] || 'Unknown event.';
+  
+        setEvents((prev) => [`${timestamp} - ${eventMessage} (Pulse: ${pulseValue})`, ...prev].slice(0, 5));
+        setPrevStatus(newStatus);
+      }
+    }, [newStatus, prevStatus]);
+  
     return (
-        <AnalyticalCard
-            title="Control Source"
-            value={source.toUpperCase()}
-            subtitle={subtitle}
-            icon={icon}
-        />
+      <Card className="border-border/30 bg-card/80">
+        <CardHeader>
+          <CardTitle className="text-md font-medium text-muted-foreground">System Event Log</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {events.length > 0 ? (
+            <ul className="space-y-2 text-sm">
+              {events.map((event, index) => (
+                <li key={index} className="text-muted-foreground font-mono">
+                  {event}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground">Awaiting system events...</p>
+          )}
+        </CardContent>
+      </Card>
     );
-}
+  };
 
 export default function Dashboard1Page() {
   const { data, isLoading } = useFenceData();
 
   const status: Status = isLoading ? 'LOADING' : data.status ?? 'DETECTING';
+  
+  const pulseValue = useMemo(() => ({
+    LEGAL: '1.2 pulses/sec',
+    ILLEGAL_NO_PULSE: '0 pulses/sec',
+    ILLEGAL_HIGH_PULSE: '3.5 pulses/sec',
+    NO_FENCE: '---',
+    DETECTING: '---',
+    LOADING: '---',
+  }[status]), [status]);
 
   return (
     <main className="min-h-screen bg-background p-4 sm:p-8">
@@ -145,8 +193,15 @@ export default function Dashboard1Page() {
             subtitle="Anomalies will be flagged"
             icon={<Wind className="h-4 w-4 text-muted-foreground" />}
           />
-          <SourceCard source={isLoading ? 'N/A' : data.source ?? 'N/A'} />
-
+          <AnalyticalCard 
+            title="Pulse Activity"
+            value={pulseValue}
+            subtitle="Expected: ~1.2 pulses/sec"
+            icon={<Zap className="h-4 w-4 text-muted-foreground" />}
+          />
+          <div className="md:col-span-2">
+            <EventLog newStatus={status} />
+          </div>
         </div>
 
         <footer className="text-center mt-8 text-sm text-muted-foreground">
